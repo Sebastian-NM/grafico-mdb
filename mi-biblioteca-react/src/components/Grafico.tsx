@@ -10,6 +10,23 @@ const Grafico: React.FC = () => {
   const chartRef = useRef<HTMLDivElement>(null);
   const [cargando, setCargando] = useState(true);
 
+  // ResizeObserver para redimensionamiento posterior
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      if (chartRef.current) {
+        Plotly.Plots.resize(chartRef.current);
+      }
+    });
+
+    if (chartRef.current) {
+      observer.observe(chartRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   useEffect(() => {
     const obtenerDatos = async () => {
       const cache = localStorage.getItem(CACHE_KEY);
@@ -111,7 +128,11 @@ const Grafico: React.FC = () => {
       };
 
       Plotly.newPlot(chartRef.current, [trace], layout, config).then(() => {
-        setCargando(false);
+        // Esta línea asegura que el gráfico se redimensione correctamente después del render
+        requestAnimationFrame(() => {
+          Plotly.Plots.resize(chartRef.current as HTMLDivElement);
+          setCargando(false);
+        });
       });
     };
 
@@ -150,6 +171,7 @@ const Grafico: React.FC = () => {
 
 export default Grafico;
 
+// Estilos
 const Wrapper = styled.section`
   width: 100%;
   max-width: 1000px;
