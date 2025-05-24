@@ -6,6 +6,11 @@ import type { PlotData, Layout } from "plotly.js";
 const CACHE_KEY = "grafico_recetas_por_categoria";
 const CACHE_TTL_MS = 1000 * 60 * 10;
 
+/**
+ * Componente que muestra un gráfico de barras horizontal con la cantidad de recetas por categoría desde TheMealDB.
+ * Utiliza Plotly.js para visualización y caching con localStorage.
+ */
+
 const Grafico: React.FC = () => {
   const chartRef = useRef<HTMLDivElement>(null);
   const [cargando, setCargando] = useState(true);
