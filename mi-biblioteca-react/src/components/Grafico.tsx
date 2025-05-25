@@ -7,15 +7,25 @@ const CACHE_KEY = "grafico_recetas_por_categoria";
 const CACHE_TTL_MS = 1000 * 60 * 10;
 
 /**
- * Componente que muestra un gráfico de barras horizontal con la cantidad de recetas por categoría desde TheMealDB.
- * Utiliza Plotly.js para visualización y caching con localStorage.
+ * Componente que muestra un gráfico de barras horizontal con datos de categorías desde TheMealDB.
+ * 
+ * 📦 Implementa un sistema de caching en `localStorage` para optimizar rendimiento:
+ * - Reutiliza los datos si tienen menos de 10 minutos de antigüedad
+ * - Si no hay caché válido, consulta la API y actualiza automáticamente
+ * 
+ * ⚠️ Requiere conexión a internet si no hay datos previamente almacenados.
+ * No acepta props en esta versión.
+ * 
+ * 🆕 Para asegurarse de tener la última versión instalada:
+ * 
+ * ```bash
+ * npm install grafico-mdb-grupo03@latest
+ * ```
  */
-
 const Grafico: React.FC = () => {
   const chartRef = useRef<HTMLDivElement>(null);
   const [cargando, setCargando] = useState(true);
 
-  // ResizeObserver para redimensionamiento posterior
   useEffect(() => {
     const observer = new ResizeObserver(() => {
       if (chartRef.current) {
@@ -33,17 +43,25 @@ const Grafico: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const esperarTamanioContenedor = async (ref: HTMLDivElement): Promise<void> => {
+      return new Promise((resolve) => {
+        const check = () => {
+          if (ref.offsetWidth > 0 && ref.offsetHeight > 0) {
+            resolve();
+          } else {
+            requestAnimationFrame(check);
+          }
+        };
+        check();
+      });
+    };
+
     const obtenerDatos = async () => {
       const cache = localStorage.getItem(CACHE_KEY);
       const ahora = Date.now();
 
       if (cache) {
-        const {
-          timestamp,
-          nombresCategorias,
-          recetasPorCategoria,
-          coloresVerde,
-        } = JSON.parse(cache);
+        const { timestamp, nombresCategorias, recetasPorCategoria, coloresVerde } = JSON.parse(cache);
         if (ahora - timestamp < CACHE_TTL_MS) {
           generarGrafico(nombresCategorias, recetasPorCategoria, coloresVerde);
           return;
@@ -51,28 +69,20 @@ const Grafico: React.FC = () => {
       }
 
       try {
-        const res = await fetch(
-          "https://www.themealdb.com/api/json/v1/1/categories.php"
-        );
+        const res = await fetch("https://www.themealdb.com/api/json/v1/1/categories.php");
         const data = await res.json();
         const categorias = data.categories;
 
-        const nombresCategorias: string[] = categorias.map(
-          (c: any) => c.strCategory
-        );
+        const nombresCategorias: string[] = categorias.map((c: any) => c.strCategory);
         const coloresVerde = generarColoresVerde(categorias.length);
 
         const promesas = categorias.map(async (categoria: any) => {
           try {
-            const res = await fetch(
-              `https://www.themealdb.com/api/json/v1/1/filter.php?c=${categoria.strCategory}`
-            );
+            const res = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${categoria.strCategory}`);
             const data = await res.json();
             return data.meals ? data.meals.length : 0;
           } catch {
-            console.error(
-              `Error al obtener recetas para ${categoria.strCategory}`
-            );
+            console.error(`Error al obtener recetas para ${categoria.strCategory}`);
             return 0;
           }
         });
@@ -95,12 +105,15 @@ const Grafico: React.FC = () => {
       }
     };
 
-    const generarGrafico = (
+    const generarGrafico = async (
       categorias: string[],
       recetas: number[],
       colores: string[]
     ) => {
       if (!chartRef.current) return;
+
+      await esperarTamanioContenedor(chartRef.current);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
       const trace: Partial<PlotData> = {
         y: categorias,
@@ -129,15 +142,12 @@ const Grafico: React.FC = () => {
       const config = {
         responsive: true,
         scrollZoom: true,
-        displayModeBar: "hover",
+        displayModeBar: false,
       };
 
       Plotly.newPlot(chartRef.current, [trace], layout, config).then(() => {
-        // Esta línea asegura que el gráfico se redimensione correctamente después del render
-        requestAnimationFrame(() => {
-          Plotly.Plots.resize(chartRef.current as HTMLDivElement);
-          setCargando(false);
-        });
+        Plotly.Plots.resize(chartRef.current as HTMLDivElement);
+        setCargando(false);
       });
     };
 
@@ -147,8 +157,7 @@ const Grafico: React.FC = () => {
       for (let i = 0; i < cantidad; i++) {
         const factor = 50 + i * 12;
         const verde = `rgb(${Math.min(base[0] + factor, 255)}, ${Math.min(
-          base[1] + factor,
-          255
+          base[1] + factor, 255
         )}, ${Math.min(base[2] + factor, 255)})`;
         colores.push(verde);
       }
