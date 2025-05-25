@@ -1,54 +1,71 @@
-# React + TypeScript + Vite
+# 📊 grafico-mdb
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Componente React reutilizable que muestra un gráfico de barras horizontal con la cantidad de recetas por categoría, consultadas desde [TheMealDB](https://www.themealdb.com/api.php). Utiliza **Plotly.js** para la visualización y aplica técnicas de **caching local** para optimizar el rendimiento.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Instalación
 
-## Expanding the ESLint configuration
+```bash
+npm install grafico-mdb
+🧩 Uso básico
+tsx
+Copiar
+Editar
+import Grafico from 'grafico-mdb';
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+function App() {
+  return <Grafico />;
+}
+El componente se monta automáticamente, consulta los datos desde la API, aplica cacheo y muestra el gráfico sin necesidad de props ni configuración adicional.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+🧠 Funcionalidades
+Visualización clara y responsive de datos por categoría
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Colores dinámicos personalizados para cada barra
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Animación de carga mientras se renderiza el gráfico
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Caching inteligente con localStorage (válido por 10 minutos)
+
+Gráfico sin herramientas interactivas de Plotly (modo limpio)
+
+🔒 Caching local
+Este componente implementa un sistema de caché en localStorage para reducir el número de llamadas a la API:
+
+🔁 Si ya existen datos y tienen menos de 10 minutos de antigüedad, se reutilizan.
+
+🌐 Si no hay caché válido, se consulta la API y se actualiza el almacenamiento local automáticamente.
+
+🆕 Actualización
+Para asegurarse de tener la última versión instalada en su proyecto:
+
+bash
+Copiar
+Editar
+npm install grafico-mdb@latest
+📦 Requisitos
+Este componente depende de:
+
+react v18 o superior
+
+react-dom
+
+plotly.js-dist-min
+
+styled-components
+
+Estas dependencias se declaran como peerDependencies.
+
+📚 Documentación en Storybook
+El componente cuenta con documentación interactiva en Storybook para su visualización y prueba en aislamiento.
+
+Puede desplegarse públicamente usando GitHub Pages, Vercel o Chromatic.
+
+👨‍💻 Autores
+Sebastián Navarro
+
+Fabián Guzmán
+
+Amanda Chaves
+
